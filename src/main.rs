@@ -1,46 +1,38 @@
-use bevy::prelude::*;
-
-#[derive(Component)]
-struct Person;
-
-#[derive(Component)]
-struct Name(String);
+use bevy::{
+   prelude::*,
+   sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+};
 
 fn main() {
    App::new()
-      .insert_resource(GreetTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
-      .add_plugins(DefaultPlugins)
-      .add_systems(Startup, add_people)
-      .add_systems(Update, (update_people, greet_people.chain()))
-      .run();
+       .add_plugins(DefaultPlugins)
+       .add_systems(Startup, setup)
+       .run();
 }
 
-fn hello_world() {
-   println!("hello world");
-}
+fn setup(mut commands: Commands,
+   mut meshes: ResMut<Assets<Mesh>>,
+   mut materials: ResMut<Assets<ColorMaterial>>,)
+   {
+      commands.spawn(Camera2dBundle::default());   
 
-fn add_people(mut commands: Commands) {
-   commands.spawn((Person, Name("Elaina Proctor".to_string())));
-   commands.spawn((Person, Name("Renzo Hume".to_string())));
-   commands.spawn((Person, Name("Zayna Nieves".to_string())));
-}
+      let shape = Mesh2dHandle(meshes.add(Triangle2d::new(
+         Vec2::Y * 50.0,
+         Vec2::new(-50.0, -50.0),
+         Vec2::new(50.0, -50.0),
+     )));
 
-#[derive(Resource)]
-struct GreetTimer(Timer);
+     let color = Color::rgb_u8(255, 17, 0);
 
-fn greet_people(time: Res<Time>,mut timer: ResMut<GreetTimer>,query: Query<&Name, With<Person>>) {
-   if timer.0.tick(time.delta()).just_finished() {
-      for name in &query {
-          println!("hello {}!", name.0);
-      }
-  }
-}
-
-fn update_people(mut query: Query<&mut Name, With<Person>>) {
-   for mut name in &mut query {
-       if name.0 == "Elaina Proctor" {
-           name.0 = "Elaina Hume".to_string();
-           break; // We don’t need to change any other names
-       }
-   }
+     commands.spawn(MaterialMesh2dBundle {
+      mesh: shape,
+      material: materials.add(color),
+      transform: Transform::from_xyz(
+          // Distribute shapes from -X_EXTENT to +X_EXTENT.
+          0.0,
+          0.0,
+          0.0,
+      ),
+      ..default()
+  });
 }
